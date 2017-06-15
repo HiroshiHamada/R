@@ -1,12 +1,67 @@
-library(MASS)
+library(MASS)#2次元正規分布用
 
-
-
-
-
-# 説明変数を拡張
 #関数generator*は人工データを発生させるための関数
 #攪乱項はdata.frameの定義の際に追加する
+
+generator1<-function(x){5+6*x}
+generator2<-function(x){20+10*x}
+generator3<-function(x){20+10*x1*sqrt(x2)*(x3^3)  }
+generator4<-function(x){20 + 10*x1 + 5*x2 + 5*x3  -10*x1*x3  }#交互作用項
+generator5<-function(x){20 + 5*x2 -10*x1*x3}#実は主効果なし
+generator6<-function(x){10 + 5*x1 + 5*x2 - 5*x3+3*x2^2}
+
+# 関数misspecificationの概要：
+#人工データをgenerator関数を使って生成．
+#その後generator関数と異なる関数で推定する
+# ndはサンプルサイズ，generatortypeでswitchを切り替え，
+# generator関数を指定する． 
+
+misspecification<-function(nd,generatortype,statmodel){
+  v1<-ceiling(10*runif(nd))#1から10の値をランダムに発生
+  v2<-ceiling(10*runif(nd))#最小値を0，最大値を1にするため10倍
+  v3<-ceiling(10*runif(nd))
+  #optionで真の関数を選択,相互排反なのでif並列
+  switch(generatortype,
+         y1<-generator1(v1,v2,v3),# 関数はlistable
+         y1<-generator2(v1,v2,v3),
+         y1<-generator3(v1,v2,v3),
+         y1<-generator4(v1,v2,v3),
+         y1<-generator5(v1,v2,v3),
+         y1<-generator6(v1,v2,v3),
+  )
+  error<-rnorm(nd, mean = 0, sd = 1)#攪乱項の生成
+  y1<-y1+error #攪乱項の追加
+  data1<-data.frame(x1=v1,x2=v2,x3=v3,x2square=v2^2,y=y1)#data.frameを使って人工データを定義
+  switch(statmodel,#推定用の統計モデルを指定
+         out<-lm(y~x1+x2+x3,data=data1),
+         out<-lm(y~x1+x2+x3+x2square,data=data1),
+  )
+  switch(generatortype,
+         print("generator1 is 20 + 10*x1 + 5*x2 + (-3)*x3"),
+         print("generator2 is 20 + 10*x1*x2*x3"),
+         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
+         print("generator5 is 20 + 5*x2 -10*x1*x3"),
+         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+  switch(statmodel,
+         print("model is y~x1+x2+x3"),
+         print("model is y~x1+x2+x3+x2square"),
+         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
+         print("generator5 is 20 + 5*x2 -10*x1*x3"),
+         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+  summary(out)
+}
+
+
+misspecification(1000,6,1)
+
+
+
+
+
+# 説明変数を2つ以上に拡張
+
 
 generator1<-function(x1,x2,x3){20 + 10*x1 + 5*x2 + (-3)*x3   }
 generator2<-function(x1,x2,x3){20+10*x1*x2*x3}
@@ -55,19 +110,19 @@ misspecification<-function(nd,generatortype,statmodel){
          out<-lm(y~x1+x2+x3+x2square,data=data1),
   )
   switch(generatortype,
-         print("generater1 is 20 + 10*x1 + 5*x2 + (-3)*x3"),
-         print("generater2 is 20 + 10*x1*x2*x3"),
-         print("generater3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
-         print("generater4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
-         print("generater5 is 20 + 5*x2 -10*x1*x3"),
-         print("generater6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+         print("generator1 is 20 + 10*x1 + 5*x2 + (-3)*x3"),
+         print("generator2 is 20 + 10*x1*x2*x3"),
+         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
+         print("generator5 is 20 + 5*x2 -10*x1*x3"),
+         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
   switch(statmodel,
          print("model is y~x1+x2+x3"),
          print("model is y~x1+x2+x3+x2square"),
-         print("generater3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
-         print("generater4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
-         print("generater5 is 20 + 5*x2 -10*x1*x3"),
-         print("generater6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
+         print("generator5 is 20 + 5*x2 -10*x1*x3"),
+         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
   summary(out)
 }
 
@@ -106,19 +161,19 @@ misspecification<-function(nd,generatortype,statmodel){
          out<-lm(y~x1+x2+x3+x2square,data=data1),
          )
   switch(generatortype,
-         print("generater1 is 20 + 10*x1 + 5*x2 + (-3)*x3"),
-         print("generater2 is 20 + 10*x1*x2*x3"),
-         print("generater3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
-         print("generater4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
-         print("generater5 is 20 + 5*x2 -10*x1*x3"),
-         print("generater6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+         print("generator1 is 20 + 10*x1 + 5*x2 + (-3)*x3"),
+         print("generator2 is 20 + 10*x1*x2*x3"),
+         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
+         print("generator5 is 20 + 5*x2 -10*x1*x3"),
+         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
   switch(statmodel,
          print("model is y~x1+x2+x3"),
          print("model is y~x1+x2+x3+x2square"),
-         print("generater3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
-         print("generater4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
-         print("generater5 is 20 + 5*x2 -10*x1*x3"),
-         print("generater6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
+         print("generator5 is 20 + 5*x2 -10*x1*x3"),
+         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
   summary(out)
 }
 
