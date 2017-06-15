@@ -3,12 +3,10 @@ library(MASS)#2次元正規分布用
 #関数generator*は人工データを発生させるための関数
 #攪乱項はdata.frameの定義の際に追加する
 
-generator1<-function(x){5+6*x}
-generator2<-function(x){20+10*x}
-generator3<-function(x){20+10*x1*sqrt(x2)*(x3^3)  }
+generator1<-function(x){1 + 5*x}
+generator2<-function(x){5*x + x^2}
+generator3<-function(x){20+10*x*sqrt(x)*(2*x)  }
 generator4<-function(x){20 + 10*x1 + 5*x2 + 5*x3  -10*x1*x3  }#交互作用項
-generator5<-function(x){20 + 5*x2 -10*x1*x3}#実は主効果なし
-generator6<-function(x){10 + 5*x1 + 5*x2 - 5*x3+3*x2^2}
 
 # 関数misspecificationの概要：
 #人工データをgenerator関数を使って生成．
@@ -17,62 +15,43 @@ generator6<-function(x){10 + 5*x1 + 5*x2 - 5*x3+3*x2^2}
 # generator関数を指定する． 
 
 misspecification<-function(nd,generatortype,statmodel){
-  v1<-ceiling(10*runif(nd))#1から10の値をランダムに発生
-  v2<-ceiling(10*runif(nd))#最小値を0，最大値を1にするため10倍
-  v3<-ceiling(10*runif(nd))
-  #optionで真の関数を選択,相互排反なのでif並列
+  v1<-ceiling(10*runif(nd))#[1,5]の範囲から説明変数を発生
   switch(generatortype,
-         y1<-generator1(v1,v2,v3),# 関数はlistable
-         y1<-generator2(v1,v2,v3),
-         y1<-generator3(v1,v2,v3),
-         y1<-generator4(v1,v2,v3),
-         y1<-generator5(v1,v2,v3),
-         y1<-generator6(v1,v2,v3),
+         y1<-generator1(v1),
+         y1<-generator2(v1),
+         y1<-generator3(v1),
   )
-  error<-rnorm(nd, mean = 0, sd = 1)#攪乱項の生成
+  error<-rnorm(nd, mean = 0, sd = 2)#攪乱項の生成
   y1<-y1+error #攪乱項の追加
-  data1<-data.frame(x1=v1,x2=v2,x3=v3,x2square=v2^2,y=y1)#data.frameを使って人工データを定義
+  data1<-data.frame(x=v1,x.square=v1^2,y=y1)#data.frameを使って人工データを定義
   switch(statmodel,#推定用の統計モデルを指定
-         out<-lm(y~x1+x2+x3,data=data1),
-         out<-lm(y~x1+x2+x3+x2square,data=data1),
+         out<-lm(y~x,data=data1),#単回帰
+         out<-lm(y~x+x.square,data=data1)#2次方程式
   )
   switch(generatortype,
-         print("generator1 is 20 + 10*x1 + 5*x2 + (-3)*x3"),
-         print("generator2 is 20 + 10*x1*x2*x3"),
+         print("generator1 is 1 + 5*x"),
+         print("generator2 is 5*x + x^2"),
          print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
-         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
-         print("generator5 is 20 + 5*x2 -10*x1*x3"),
-         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
-  switch(statmodel,
-         print("model is y~x1+x2+x3"),
-         print("model is y~x1+x2+x3+x2square"),
-         print("generator3 is 20 + 10*x1*sqrt(x2)*(x3^3)"),
-         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3"),
-         print("generator5 is 20 + 5*x2 -10*x1*x3"),
-         print("generator6 is 10+5*x1+5*x2-5*x3+3*x2^2"),)
+         print("generator4 is 20 + 10*x1 + 5*x2 + 5*x3 - 10*x1*x3")
+  			 )
   summary(out)
 }
 
 
-misspecification(1000,6,1)
+misspecification(1000,2,2)
 
-
-
-
-
+##################################################
 # 説明変数を2つ以上に拡張
-
+##################################################
 
 generator1<-function(x1,x2,x3){20 + 10*x1 + 5*x2 + (-3)*x3   }
 generator2<-function(x1,x2,x3){20+10*x1*x2*x3}
-generator3<-function(x1,x2,x3){
-  20+10*x1*sqrt(x2)*(x3^3)  }
+generator3<-function(x1,x2,x3){ 20+10*x1*sqrt(x2)*(x3^3)  }
 generator4<-function(x1,x2,x3){
   20 + 10*x1 + 5*x2 + 5*x3  -10*x1*x3  }#交互作用項
 generator5<-function(x1,x2,x3){ 
   20 + 5*x2 -10*x1*x3}#実は主効果なし
-generator6<-function(x1,x2,x3){ 
-  10 + 5*x1 + 5*x2 - 5*x3+3*x2^2}
+generator6<-function(x1,x2,x3){10 + 5*x1 + 5*x2 - 5*x3+3*x2^2}
 
 
 #確認用
