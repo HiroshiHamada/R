@@ -1,4 +1,11 @@
 # select with while ################
+
+# nは候補者全体数．rは観察数
+# アルゴリズムは以下の通り
+# r人までは選ばず最大値だけ記憶する，
+# r+1人目以降にその最大値を超えた最初の人を選ぶ
+
+
 select <- function(n, r){
   applicants <- runif(n) # n人を数値化
   candidate <- max(applicants[1:r]) #r人までの暫定1位
